@@ -1,4 +1,3 @@
-
 from selenium.common.exceptions import (
     NoSuchElementException,
 )
@@ -43,10 +42,11 @@ class Review:
     def __init__(self, **kwargs):
         # Оставляем только необходимые поля
         # self.author = None
-        self.review_text = None
+        # self.review_text = None
         self.review_rating = None
         self.datetime = None
-        self.selenium_id = None
+        # self.selenium_id = None
+        self.place_id = None  # Добавляем поле place_id
 
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -54,7 +54,7 @@ class Review:
     def parse_base_information(
             self, review_elem: WebElement
     ):
-        self.selenium_id = review_elem.id
+        # self.selenium_id = review_elem.id
         # Получаем имя автора
         # try:
         #     author_elem = review_elem.find_element(
@@ -83,13 +83,13 @@ class Review:
             self.review_rating = None
 
         # Получаем текст отзыва
-        try:
-            text_elem = review_elem.find_element(
-                By.XPATH, './/*[@class="business-review-view__body"]'
-            )
-            self.review_text = text_elem.text.strip()
-        except:
-            self.review_text = None
+        # try:
+        #     text_elem = review_elem.find_element(
+        #         By.XPATH, './/*[@class="business-review-view__body"]'
+        #     )
+        #     self.review_text = text_elem.text.strip()
+        # except:
+        #     self.review_text = None
 
 
 if __name__ == '__main__':
