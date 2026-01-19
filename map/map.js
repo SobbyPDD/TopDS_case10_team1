@@ -1,7 +1,7 @@
 ymaps.ready(initMap);
 
 let map, objectManager;
-let minSize = 5, maxSize = 30;
+let minSize = 15, maxSize = 50;
 let circleCache = {};
 
 async function initMap() {
@@ -88,15 +88,17 @@ async function loadAndDisplayCompanies() {
         // Добавляем успешные результаты
         results.filter(Boolean).forEach((company, index) => {
             if (company.coords) {
-                const value = company.value;
-                const size = calculateSize(value, minSize, maxSize);
-                const color = getColorByValue(value);
+                const averageRating = company.averageRating;
+                const reviewsNum = company.reviewsNum;
+                const size = calculateSizeFromParam(reviewsNum, minSize, maxSize);
+                const color = getColorByValue(averageRating);
                 
-                // Формируем HTML для балуна
+                // Формируем HTML для балуна 
                 const balloonHTML = `
                     <div style="padding: 10px; font-family: Arial, sans-serif;">
                         <h3 style="margin: 0 0 10px 0;">${company.name || 'Компания'}</h3>
-                        <p style="margin: 5px 0;">Значение: <strong>${company.value}</strong></p>
+                        <p style="margin: 5px 0;">Рейтинг: <strong>${company.averageRating}</strong></p>
+                        ${company.reviewsNum !== undefined ? `<p style="margin: 5px 0;">Всего отзывов: <strong>${company.reviewsNum}</strong></p>` : ''}
                         <p style="margin: 5px 0;">ID: ${company.id}</p>
                         <a href="https://yandex.ru/maps/org/${company.id}" 
                            target="_blank" 
@@ -116,7 +118,8 @@ async function loadAndDisplayCompanies() {
                     properties: {
                         name: company.name || `Компания ${company.id}`,
                         yandexId: company.id,
-                        value: value,
+                        averageRating: averageRating,
+                        reviewsNum: reviewsNum, 
                         iconColor: color,
                         iconSize: size,
                         balloonContent: balloonHTML
@@ -172,9 +175,10 @@ function updateCircleSizes() {
     for (let id in allObjects) {
         if (allObjects.hasOwnProperty(id)) {
             const obj = allObjects[id];
-            const value = obj.properties.value || 0;
-            const size = calculateSize(value, minSize, maxSize);
-            const color = getColorByValue(value);
+            const averageRating = obj.properties.averageRating || 0;
+            const reviewsNum = obj.properties.reviewsNum; 
+            const size = calculateSizeFromParam(reviewsNum, minSize, maxSize);
+            const color = getColorByValue(averageRating);
             
             // Обновляем иконку
             objectManager.objects.setObjectOptions(id, {
@@ -188,8 +192,28 @@ function updateCircleSizes() {
     console.log(`Обновлено ${Object.keys(allObjects).length} объектов`);
 }
 
+// Расчет размера от reviewsNum
+function calculateSizeFromParam(reviewsNum, min, max) {
+    // Получаем все reviewsNum из данных
+    const allSizeParams = companyData.map(c => c.reviewsNum !== undefined ? c.reviewsNum : c.averageRating);
+    const minParam = Math.min(...allSizeParams);
+    const maxParam = Math.max(...allSizeParams);
+    
+    // Защита от деления на ноль
+    if (maxParam === minParam) return (min + max) / 2;
+    
+    // Нормализуем от 0 до 1
+    const normalized = Math.sqrt((reviewsNum - minParam) / (maxParam - minParam));
+    
+    // Линейная интерполяция между min и max
+    const size = min + normalized * (max - min);
+    console.log(`reviewsNum: ${reviewsNum}, size: ${size}`);
+    return size;
+}
+
 function getCircleImageUrl(color, size) {
     // Рисуем картинку кружочка :)
+    // Можно ещё взять circle.png в качестве иконки и смеяться с лица Тома Йорка
     const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
             <circle cx="${size/2}" cy="${size/2}" r="${size/2 - 1}" fill="${color}"/>
@@ -200,23 +224,10 @@ function getCircleImageUrl(color, size) {
     return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
 }
 
-function calculateSize(value, min, max) {
-    const allValues = companyData.map(c => c.value);
-    const minValue = Math.min(...allValues);
-    const maxValue = Math.max(...allValues);
-    
-    // Защита от деления на ноль
-    if (maxValue === minValue) return (min + max) / 2;
-    
-    const normalized = (value - minValue) / (maxValue - minValue);
-    const size = min + normalized * (max - min);
-    
-    return size;
-}
-
-function getColorByValue(value) {
-    if (value > 60) return '#ff3333';
-    if (value > 40) return '#ff9900';
-    if (value > 25) return '#ffcc00';
-    return '#33cc33';
+function getColorByValue(averageRating) {
+    if (averageRating < 2.5) return '#ff3333';
+    if (averageRating < 3.5) return '#ff9900';
+    if (averageRating < 4.2) return '#ffcc00';
+    if (averageRating < 4.6) return '#70e424ff';
+    return '#0e7f0eff';
 }
