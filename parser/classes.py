@@ -1,3 +1,4 @@
+
 from selenium.common.exceptions import (
     NoSuchElementException,
 )
@@ -14,9 +15,6 @@ def try_get_child_elem_by_xpath(
 ) -> WebElement or None:
     found_elem = parent_element.find_elements(
         by=By.XPATH, value=value
-    )
-    logger.debug(
-        f"{len(found_elem)=} {value} {parent_element.get_attribute('outerHTML')=}"
     )
     return found_elem[0] if found_elem else None
 
@@ -36,20 +34,6 @@ def try_found_elem_if_exist_return_text(
         return parent_element.text
 
 
-def get_dict_from_meta(
-        parent_element: WebElement, value: str
-) -> dict:
-    return {
-        meta.get_attribute("itemprop"): [
-            meta.get_attribute("content"),
-            meta.text,
-        ]
-        for meta in parent_element.find_elements(
-            By.XPATH, value
-        )
-    }
-
-
 class Review:
     """class for reviews"""
 
@@ -57,15 +41,9 @@ class Review:
         return repr(self.__dict__)
 
     def __init__(self, **kwargs):
-
-        self.response_text = None
-        self.response_datetime = None
-        self.is_a_response = True
-        self.dislike = None
-        self.like = None
+        # Оставляем только необходимые поля
+        # self.author = None
         self.review_text = None
-        self.author_url = None
-        self.author = None
         self.review_rating = None
         self.datetime = None
         self.selenium_id = None
@@ -77,56 +55,41 @@ class Review:
             self, review_elem: WebElement
     ):
         self.selenium_id = review_elem.id
-        self.datetime = get_dict_from_meta(
-            review_elem,
-            './/*[@class="business-review-view__date"]//*',
-        )
-        self.review_rating = get_dict_from_meta(
-            review_elem,
-            './/*[@itemtype="http://schema.org/Rating"]//*',
-        )
-        self.author = get_dict_from_meta(
-            review_elem,
-            './/*[@itemtype="http://schema.org/Person"]//*',
-        )
-        self.author_url = (
-            try_found_elem_if_exist_return_attr(
-                review_elem,
-                "href",
-            )
-        )
-        self.review_text = try_found_elem_if_exist_return_text(
-            review_elem,
-        )
-        self.like = try_found_elem_if_exist_return_text(
-            review_elem,
-        )
-        self.dislike = try_found_elem_if_exist_return_text(
-            review_elem,
-        )
+        # Получаем имя автора
+        # try:
+        #     author_elem = review_elem.find_element(
+        #         By.XPATH, './/*[@itemtype="http://schema.org/Person"]//meta[@itemprop="name"]'
+        #     )
+        #     self.author = author_elem.get_attribute("content")
+        # except:
+        #     self.author = None
 
-    def try_add_response(self, review_elem, driver):
-        self.is_a_response = False
+        # Получаем дату
         try:
-            elem_comment_expand = review_elem.find_element(
-                by=By.XPATH,
-                value='.//*[@class="business-review-view__comment-expand"]',
+            date_elem = review_elem.find_element(
+                By.XPATH, './/*[@class="business-review-view__date"]//meta[@itemprop="datePublished"]'
             )
-            driver.execute_script(
-                "arguments[0].scrollIntoView(true);",
-                elem_comment_expand,
+            self.datetime = date_elem.get_attribute("content")
+        except:
+            self.datetime = None
+
+        # Получаем рейтинг
+        try:
+            rating_elem = review_elem.find_element(
+                By.XPATH, './/*[@itemtype="http://schema.org/Rating"]//meta[@itemprop="ratingValue"]'
             )
-            driver.execute_script(
-                "arguments[0].click();", elem_comment_expand
+            self.review_rating = rating_elem.get_attribute("content")
+        except:
+            self.review_rating = None
+
+        # Получаем текст отзыва
+        try:
+            text_elem = review_elem.find_element(
+                By.XPATH, './/*[@class="business-review-view__body"]'
             )
-            self.response_datetime = try_found_elem_if_exist_return_text(
-                review_elem,
-            )
-            self.response_text = try_found_elem_if_exist_return_text(
-                review_elem,
-            )
-        except NoSuchElementException:
-            pass
+            self.review_text = text_elem.text.strip()
+        except:
+            self.review_text = None
 
 
 if __name__ == '__main__':
