@@ -1,4 +1,3 @@
-
 import datetime as dt
 import json
 import logging
@@ -30,7 +29,7 @@ def mode_script_content(driver: Firefox, filepath):
     save_json(json.loads(script_content), filepath)
 
 
-def mode_reviews(driver: Firefox, filepath, limit: int = None):
+def mode_reviews(driver: Firefox, filepath, limit: int = None, org_id: int = None):  # Добавляем org_id как параметр
     # Ждем загрузки страницы
     time.sleep(3)
 
@@ -60,16 +59,18 @@ def mode_reviews(driver: Firefox, filepath, limit: int = None):
             # Добавляем небольшую задержку для стабилизации
             time.sleep(0.1)
 
-            new_review = Review()
+            # Создаем отзыв с передачей place_id
+            new_review = Review(place_id=org_id)
             new_review.parse_base_information(review_elem=review_elem)
 
             # Формируем только необходимые поля
             review_data = {
                 # 'author': new_review.author,
-                'selenium_id': new_review.selenium_id,
-                'review_text': new_review.review_text,
+                # 'selenium_id': new_review.selenium_id,
+                # 'review_text': new_review.review_text,
                 'review_rating': new_review.review_rating,
                 'datetime': new_review.datetime,
+                'place_id': new_review.place_id,  # Добавляем place_id в данные
             }
 
             data.append(review_data)
@@ -130,7 +131,11 @@ def get_organization_reviews(driver: Firefox, mode: str, implicitly_wait: int = 
         logger.info(f"Путь не указан. Используем путь по умолчанию: {filepath}")
 
     driver.get(organization_url)
-    MODE_DICT[mode](driver=driver, filepath=filepath, limit=limit)
+    # Передаем org_id в функцию mode_reviews
+    if mode == 'reviews':
+        MODE_DICT[mode](driver=driver, filepath=filepath, limit=limit, org_id=org_id)
+    else:
+        MODE_DICT[mode](driver=driver, filepath=filepath, limit=limit)
 
 
 if __name__ == '__main__':
