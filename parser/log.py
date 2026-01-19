@@ -7,34 +7,31 @@ def configure_logging(
         debug: bool = False,
         log_file: Optional[str] = None
 ) -> None:
-    # '%(asctime)s {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
-    # '%(asctime)s [%(levelname)s] %(module)s:%(funcName)s:%(lineno)d - %(message)s'
+    # Очищаем предыдущие обработчики
+    for handler in logging.getLogger().handlers[:]:
+        logging.getLogger().removeHandler(handler)
 
-    logging.getLogger().handlers.clear()
-    fmt_str = '%(asctime)s %(levelname)s %(name)s {%(filename)s:%(lineno)d}  - %(message)s'
+    fmt_str = '%(asctime)s %(levelname)s %(name)s - %(message)s'
     datefmt = '%Y-%m-%d %H:%M:%S'
-    stdout_handler = logging.StreamHandler(stream=sys.stdout)
-    stdout_handler.addFilter(lambda rec: rec.levelno <= logging.INFO)
-    formatter_info = logging.Formatter(
+
+    # Основной обработчик для stdout
+    handler = logging.StreamHandler(stream=sys.stdout)
+    formatter = logging.Formatter(
         fmt=fmt_str,
         datefmt=datefmt,
     )
-    stdout_handler.setFormatter(formatter_info)
+    handler.setFormatter(formatter)
 
-    stderr_handler = logging.StreamHandler(stream=sys.stderr)
-    stderr_handler.addFilter(lambda rec: rec.levelno > logging.INFO)
-    formatter_warnings = logging.Formatter(
-        fmt=fmt_str,
-        datefmt=datefmt,
-    )
-    stderr_handler.setFormatter(formatter_warnings)
+    logging.getLogger().addHandler(handler)
 
-    logging.getLogger().addHandler(stdout_handler)
-    logging.getLogger().addHandler(stderr_handler)
-    logging.getLogger().setLevel(logging.INFO)
+    # Устанавливаем уровень логирования
     if debug:
-        logging.getLogger('parser').setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger('selenium').setLevel(logging.WARNING)
+        logging.getLogger('urllib3').setLevel(logging.WARNING)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
 
     logging.info(f'Logging configured successfully')
-    logging.debug('Debug logging is enabled')
-    logging.warning('This is a warning message')
+    if debug:
+        logging.debug('Debug logging is enabled')

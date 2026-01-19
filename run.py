@@ -1,53 +1,43 @@
+
 import argparse
 import logging
-
+from selenium import webdriver
 from parser.log import configure_logging
-from parser.main import get_organization_reviews, MODE_DICT
-from parser.selenium_helper import make_driver
+from parser.main import get_organization_reviews
 
 
+def main():
+    parser = argparse.ArgumentParser(description='Парсер отзывов Яндекс Карт')
+    parser.add_argument('--org_id', type=int, required=True, help='ID организации')
+    parser.add_argument('--limit', type=int, default=None, help='Лимит отзывов')
+    parser.add_argument('--mode', type=str, default='reviews', choices=['reviews', 'experimental'], help='Режим работы')
+    parser.add_argument('--debug', action='store_true', help='Включить отладочный режим')
+    parser.add_argument('--headless', action='store_true', help='Запуск браузера в фоновом режиме')
+    parser.add_argument('--output', type=str, default=None, help='Путь к выходному файлу. Если не указан, используется папка json/reviews.json')
 
-
-def run():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('--org_id',
-                        type=str,
-                        required=False,
-                        default='1124715036',
-                        help='''On the company page, the numbers in the address bar.
-                            For example, for https://yandex.ru/maps/org/yandeks/1124715036/reviews/ we need 1124715036''')
-    parser.add_argument('--debug',
-                        action=argparse.BooleanOptionalAction
-                        )
-    parser.add_argument('--mode',
-                        choices=(modes_list := list(MODE_DICT.keys())),
-                        required=False,
-                        default=modes_list[0],
-                        )
-    parser.add_argument('--limit',
-                        type=int,
-                        required=False,
-                        default=None,  # По умолчанию - без лимита
-                        help='Maximum number of reviews to collect. Example: --limit 50'
-                        )
     args = parser.parse_args()
-    args.debug = args.debug or False
-    configure_logging(
-        debug=args.debug,
-    )
-    logging.info(f"{args=} {args.debug=}")
-    with make_driver(
-            debug=args.debug,
-    ) as driver:
+
+    # Настройка логирования
+    configure_logging(debug=args.debug)
+
+    # Создание драйвера
+    from parser.selenium_helper import make_driver
+    driver = make_driver(debug=not args.headless)
+
+    try:
         get_organization_reviews(
-            org_id=args.org_id,
             driver=driver,
-            implicitly_wait=1,
             mode=args.mode,
-            limit=args.limit,  # <-- Добавьте эту строку
+            org_id=args.org_id,
+            limit=args.limit,
+            output_path=args.output
         )
+    except Exception as e:
+        logging.error(f"Ошибка при выполнении парсинга: {e}")
+        raise
+    finally:
+        driver.quit()
 
 
 if __name__ == '__main__':
-    run()
+    main()
