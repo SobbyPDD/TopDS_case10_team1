@@ -10,9 +10,10 @@ def main():
     parser = argparse.ArgumentParser(description='Парсер отзывов Яндекс Карт')
     parser.add_argument('--org_id', type=int, required=True, help='ID организации')
     parser.add_argument('--limit', type=int, default=None, help='Лимит отзывов')
-    parser.add_argument('--mode', type=str, default='reviews', choices=['reviews', 'experimental'], help='Режим работы')
     parser.add_argument('--debug', action='store_true', help='Включить отладочный режим')
     parser.add_argument('--headless', action='store_true', help='Запуск браузера в фоновом режиме')
+    parser.add_argument('--mode', type=str, default='smart', choices=['reviews', 'smart', 'experimental'], 
+                   help='Режим работы (reviews: по одному, smart: умная прокрутка, experimental: скрипт)')
     parser.add_argument('--output', type=str, default=None, help='Путь к выходному файлу. Если не указан, используется папка json/reviews.json')
 
     args = parser.parse_args()

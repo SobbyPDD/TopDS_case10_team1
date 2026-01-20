@@ -9,6 +9,7 @@ from selenium.webdriver import Firefox
 from selenium.webdriver.remote.webelement import WebElement
 
 from parser import selenium_helper as sh
+from . import smart_parser
 from parser.classes import Review
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -110,9 +111,9 @@ def mode_reviews(driver: Firefox, filepath, limit: int = None, org_id: int = Non
 # Режимы работы
 MODE_DICT = {
     'reviews': mode_reviews,
+    'smart': smart_parser.mode_reviews_smart, 
     'experimental': mode_script_content,
 }
-
 
 def get_organization_reviews(driver: Firefox, mode: str, implicitly_wait: int = 0,
                              org_id: int = 1124715036, limit: int = None, output_path: str = None):
