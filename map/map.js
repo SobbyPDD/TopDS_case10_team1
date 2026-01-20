@@ -225,9 +225,35 @@ function getCircleImageUrl(color, size) {
 }
 
 function getColorByValue(averageRating) {
-    if (averageRating < 2.5) return '#ff3333';
-    if (averageRating < 3.5) return '#ff9900';
-    if (averageRating < 4.2) return '#ffcc00';
-    if (averageRating < 4.6) return '#70e424ff';
-    return '#0e7f0eff';
+    // Цветовые точки градиента
+    const colorStops = [
+        {value: 0.0, color: '#600010'},   // Бордовый
+        {value: 3.0, color: '#ff0000'},   // Красный
+        {value: 3.8, color: '#ff6600'},   // Оранжевый
+        {value: 4.0, color: '#ffcc00'},   // Жёлтый
+        {value: 4.2, color: '#e1ff00ff'},   // Салатовый
+        {value: 4.4, color: '#0ad70aff'},   // Зелёный
+        {value: 4.8, color: '#008b00ff'},   // Тёмно-зелёный
+        {value: 5.0, color: '#003c1e'}    // Очень тёмно-зелёный
+    ];
+    
+    // Ограничиваем диапазон
+    let rating = Math.max(0, Math.min(5, averageRating));
+    
+    // Находим между какими точками находится рейтинг
+    if (averageRating == 5.0) {
+        return '#067198ff';
+    }
+    for (let i = 0; i < colorStops.length - 1; i++) {
+        if (rating >= colorStops[i].value && rating <= colorStops[i + 1].value) {
+            // return interpolateColor(
+            //     colorStops[i].color,
+            //     colorStops[i + 1].color,
+            //     (rating - colorStops[i].value) / (colorStops[i + 1].value - colorStops[i].value)
+            // );
+            return colorStops[i].color;
+        }
+    }
+    
+    return colorStops[colorStops.length - 1].color;
 }

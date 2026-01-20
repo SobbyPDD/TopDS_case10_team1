@@ -1,31 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Карта с компаниями</title>
-    <script src="https://api-maps.yandex.ru/2.1/?apikey=INSERT_YOUR_API_KEY&lang=ru_RU"></script>
-    <style>
-        #map {
-            width: 100%;
-            height: 600px;
-        }
-        .controls {
-            padding: 10px;
-            background: #f5f5f5;
-        }
-    </style>
-</head>
-<body>
-    <div class="controls">
-        <label>Минимальный размер: <input type="range" id="minSize" min="3" max="20" value="5"></label>
-        <label>Максимальный размер: <input type="range" id="maxSize" min="10" max="50" value="30"></label>
-        <button id="updateSizes">Обновить размеры</button>
-    </div>
-    <div id="map"></div>
-    
-    <script>
-        // Ваши ID организаций (последняя часть URL)
-        const companyData = [
+[
   {
     "id": "234397670737",
     "averageRating": 4.2,
@@ -8177,7 +8150,3 @@
     ]
   }
 ]
-</script>
-    <script src="map.js"></script>
-</body>
-</html>
