@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Карта с компаниями</title>
+    <!-- лан юзайте мой апи ключ ниче ниче -->
     <script src="https://api-maps.yandex.ru/2.1/?apikey=977d4a5a-1617-4928-8f39-0124d30fe4a1&lang=ru_RU"></script>
     <style>
         #map {
@@ -16,15 +17,9 @@
     </style>
 </head>
 <body>
-    <div class="controls">
-        <label>Минимальный размер: <input type="range" id="minSize" min="3" max="20" value="5"></label>
-        <label>Максимальный размер: <input type="range" id="maxSize" min="10" max="50" value="30"></label>
-        <button id="updateSizes">Обновить размеры</button>
-    </div>
     <div id="map"></div>
     
     <script>
-        // Ваши ID организаций (последняя часть URL)
         const companyData = [
   {
     "id": "234397670737",
